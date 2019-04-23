@@ -21,11 +21,14 @@
   function makeScatterPlot(csvData) {
     data = csvData;
 
-    // // get an array of gre scores and an array of chance of admit
+    // // get an array of toefl scores and an array of chance of admit
     let toeflScores = data.map(row => parseInt(row['TOEFL Score']));
     // let admissionRates = data.map(row => parseFloat(row['Admit']));
 
     let axesLimits = findMinMax(toeflScores);
+
+    // console.log(axesLimits.toeflMin);
+    // console.log(axesLimits.toeflMax);
 
     // // draw axes with ticks and return mapping and scaling functions
     // let mapFunctions = drawTicks(axesLimits);
@@ -71,15 +74,15 @@
 
   // draw the axes and ticks
   function drawTicks(limits) {
-    // return gre score from a row of data
+    // return toefl score from a row of data
     let xValue = function(d) {
-      return +d['GRE Score'];
+      return +d['TOEFL Score'];
     };
 
-    // function to scale gre score
+    // function to scale toefl score
     let xScale = d3
       .scaleLinear()
-      .domain([limits.greMin - 5, limits.greMax]) // give domain buffer room
+      .domain([limits.toeflMin - 5, limits.toeflMax]) // give domain buffer room
       .range([50, 450]);
 
     // xMap returns a scaled x value from a row of data
@@ -126,36 +129,30 @@
     };
   }
 
-  // find min and max for GRE Scores and Chance of Admit
+  // find min and max for toefl Scores and Chance of Admit
   function findMinMax(toeflScores) {
-    // get min/max gre scores
-    let greMin = d3.min(toeflScores);
-    let greMax = d3.max(toeflScores);
+    // get min/max toefl scores
+    let toeflMin = d3.min(toeflScores);
+    let toeflMax = d3.max(toeflScores);
 
     // round x-axis limits
-    greMax = Math.round(greMax * 10) / 10;
-    greMin = Math.round(greMin * 10) / 10;
+    toeflMax = Math.round(toeflMax * 10) / 10;
+    toeflMin = Math.round(toeflMin * 10) / 10;
 
     const { scoresMin, scoresMax } = findMinMaxYAxis(toeflScores);
-    console.log(scoresMin);
-    console.log(scoresMax);
-
-    // get min/max admit chance
-    // let admitMin = d3.min(admissionRates);
-    // let admitMax = d3.max(admissionRates);
-
-    // // round y-axis limits to nearest 0.05
-    // admitMax = Number((Math.ceil(admitMax * 20) / 20).toFixed(2));
-    // admitMin = Number((Math.ceil(admitMin * 20) / 20).toFixed(2));
+    // console.log(scoresMin);
+    // console.log(scoresMax);
 
     // return formatted min/max data as an object
     return {
-      greMin: greMin,
-      greMax: greMax,
+      toeflMin: toeflMin,
+      toeflMax: toeflMax,
       scoresMin: scoresMin,
       scoresMax: scoresMax,
     };
   }
+
+  function findMinMaxXAxis(toeflScores) {}
 
   function findMinMaxYAxis(toeflScores) {
     const count = toeflScores.reduce((acc, score) => ({
@@ -168,6 +165,10 @@
 
     const scoresMin = Math.min(...Object.keys(count));
     const scoresMax = Math.max(...Object.keys(count));
+
+    console.log(count);
+
+    console.log(Object.keys(count).reduce((score, idx) => {}));
 
     // console.log(scoresMin);
     // console.log(scoresMax);
@@ -182,5 +183,9 @@
       scoresMin: Math.floor(scoresMin / 10) * 10,
       scoresMax: Math.floor(scoresMax / 10) * 10 + 3,
     };
+  }
+
+  function getBucketName(score, idx) {
+    return score % idx;
   }
 })();
