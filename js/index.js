@@ -129,32 +129,18 @@
     };
   }
 
-  // find min and max for toefl Scores and Chance of Admit
   function findMinMax(toeflScores) {
-    // get min/max toefl scores
-    let toeflMin = d3.min(toeflScores);
-    let toeflMax = d3.max(toeflScores);
+    const max = d3.max(toeflScores);
+    const min = d3.min(toeflScores);
 
-    // round x-axis limits
-    toeflMax = Math.round(toeflMax * 10) / 10;
-    toeflMin = Math.round(toeflMin * 10) / 10;
+    // const x = d3
+    //   .scaleLinear()
+    //   .domain([min, max])
+    //   .range([0, 450]);
 
-    const { scoresMin, scoresMax } = findMinMaxYAxis(toeflScores);
-    // console.log(scoresMin);
-    // console.log(scoresMax);
+    // // Generate a histogram
+    // let histogram = d3.layout.histogram().bins(x.ticks(10))(toeflScores);
 
-    // return formatted min/max data as an object
-    return {
-      toeflMin: toeflMin,
-      toeflMax: toeflMax,
-      scoresMin: scoresMin,
-      scoresMax: scoresMax,
-    };
-  }
-
-  function findMinMaxXAxis(toeflScores) {}
-
-  function findMinMaxYAxis(toeflScores) {
     const count = toeflScores.reduce((acc, score) => ({
       ...acc,
       [score]: acc[score] ? acc[score] + 1 : 1,
@@ -166,26 +152,64 @@
     const scoresMin = Math.min(...Object.keys(count));
     const scoresMax = Math.max(...Object.keys(count));
 
-    console.log(count);
+    let histGenerator = d3
+      .histogram()
+      .domain([min, max])
+      .thresholds(9);
 
-    console.log(Object.keys(count).reduce((score, idx) => {}));
-
-    // console.log(scoresMin);
-    // console.log(scoresMax);
-
-    // console.log(countMin);
-    // console.log(countMax);
-
-    // console.log(Math.floor(scoresMin / 10) * 10);
-    // console.log(Math.floor(scoresMax / 10) * 10 + 3);
-
-    return {
-      scoresMin: Math.floor(scoresMin / 10) * 10,
-      scoresMax: Math.floor(scoresMax / 10) * 10 + 3,
-    };
+    let bins = histGenerator(Object.keys(count));
+    console.log(bins);
   }
 
-  function getBucketName(score, idx) {
-    return score % idx;
-  }
+  // // find min and max for toefl Scores and Chance of Admit
+  // function findMinMax(toeflScores) {
+  //   // get min/max toefl scores
+  //   let toeflMin = d3.min(toeflScores);
+  //   let toeflMax = d3.max(toeflScores);
+
+  //   // round x-axis limits
+  //   toeflMax = Math.round(toeflMax * 10) / 10;
+  //   toeflMin = Math.round(toeflMin * 10) / 10;
+
+  //   const { scoresMin, scoresMax } = findMinMaxYAxis(toeflScores);
+  //   // console.log(scoresMin);
+  //   // console.log(scoresMax);
+
+  //   // return formatted min/max data as an object
+  //   return {
+  //     toeflMin: toeflMin,
+  //     toeflMax: toeflMax,
+  //     scoresMin: scoresMin,
+  //     scoresMax: scoresMax,
+  //   };
+  // }
+
+  // function findMinMaxXAxis(toeflScores) {}
+
+  // function findMinMaxYAxis(toeflScores) {
+
+  //   const count = toeflScores.reduce((acc, score) => ({
+  //     ...acc,
+  //     [score]: acc[score] ? acc[score] + 1 : 1,
+  //   }));
+
+  //   const countMin = d3.min(Object.values(count));
+  //   const countMax = d3.max(Object.values(count));
+
+  //   const scoresMin = Math.min(...Object.keys(count));
+  //   const scoresMax = Math.max(...Object.keys(count));
+
+  //   let histGenerator = d3
+  //     .histogram()
+  //     .domain([countMin, countMax])
+  //     .thresholds(10);
+
+  //   let bins = histGenerator(toeflScores);
+  //   console.log(bins);
+
+  //   return {
+  //     scoresMin: Math.floor(scoresMin / 10) * 10,
+  //     scoresMax: Math.floor(scoresMax / 10) * 10 + 3,
+  //   };
+  // }
 })();
