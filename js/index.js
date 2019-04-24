@@ -1,8 +1,9 @@
 'use strict';
 
 (function() {
-  let data = ''; // keep data in global scope
+  let data = []; // keep data in global scope
   let svgContainer = ''; // keep SVG reference in global scope
+  let bins = [];
 
   // load data and make scatter plot after window loads
   window.onload = function() {
@@ -11,7 +12,7 @@
       .append('svg')
       .attr('width', 500)
       .attr('height', 500);
-    // d3.csv is basically fetch but it can be be passed a csv file as a parameter
+
     d3.csv('../data/Admission_Predict.csv').then(csvData =>
       makeScatterPlot(csvData)
     );
@@ -21,19 +22,19 @@
   function makeScatterPlot(csvData) {
     data = csvData;
 
-    // // get an array of toefl scores and an array of chance of admit
+    // get an array of toefl scores
     let toeflScores = data.map(row => parseInt(row['TOEFL Score']));
-    // let admissionRates = data.map(row => parseFloat(row['Admit']));
+
+    // group toefl scores into their bins
+    bins = findBinSizes(toeflScores);
+    // console.log(bins);
 
     let axesLimits = findMinMax(toeflScores);
 
-    // console.log(axesLimits.toeflMin);
-    // console.log(axesLimits.toeflMax);
+    // draw axes with ticks and return mapping and scaling functions
+    let mapFunctions = drawTicks(axesLimits);
 
-    // // draw axes with ticks and return mapping and scaling functions
-    // let mapFunctions = drawTicks(axesLimits);
-
-    // // plot the data using the mapping and scaling functions
+    // plot the data using the mapping and scaling functions
     // plotData(mapFunctions);
   }
 
@@ -53,16 +54,17 @@
     //   .attr('r', 3)
     //   .attr('fill', '#4286f4');
 
-    svgContainer
-      .selectAll('.rec')
-      .data(data)
-      .enter()
-      .append('rect')
-      .attr('x', dataPoint => xMap(dataPoint) - 5)
-      .attr('y', yMap)
-      .attr('width', 10)
-      .attr('height', dataPoint => 450 - yMap(dataPoint))
-      .attr('fill', '#4286f4');
+    // Going to have to use bins as data
+    // svgContainer
+    //   .selectAll('.rec')
+    //   .data(bins)
+    //   .enter()
+    //   .append('rect')
+    //   .attr('x', dataPoint => xMap(dataPoint.x0) - 1)
+    //   .attr('y', yMap)
+    //   .attr('width', dataPoint => Math.max(0, x))
+    //   .attr('height', dataPoint => 450 - yMap(dataPoint))
+    //   .attr('fill', '#4286f4');
 
     // svgContainer
     //   .append('rect')
@@ -82,7 +84,7 @@
     // function to scale toefl score
     let xScale = d3
       .scaleLinear()
-      .domain([limits.toeflMin - 5, limits.toeflMax]) // give domain buffer room
+      .domain([limits.toeflMin - 2, limits.toeflMax])
       .range([50, 450]);
 
     // xMap returns a scaled x value from a row of data
@@ -97,15 +99,15 @@
       .attr('transform', 'translate(0, 450)')
       .call(xAxis);
 
-    // return Chance of Admit from a row of data
+    // return TOEFL from a row of data
     let yValue = function(d) {
-      return +d.Admit;
+      return +d['TOEFL Score'];
     };
 
-    // function to scale Chance of Admit
+    // function to scale bin count
     let yScale = d3
       .scaleLinear()
-      .domain([limits.admitMax, limits.admitMin - 0.05]) // give domain buffer
+      .domain([limits.binCountMax, limits.binCountMin - 5])
       .range([50, 450]);
 
     // yMap returns a scaled y value from a row of data
@@ -130,86 +132,41 @@
   }
 
   function findMinMax(toeflScores) {
-    const max = d3.max(toeflScores);
-    const min = d3.min(toeflScores);
+    const toeflMax = d3.max(toeflScores);
+    const toeflMin = d3.min(toeflScores);
 
-    // const x = d3
-    //   .scaleLinear()
-    //   .domain([min, max])
-    //   .range([0, 450]);
+    const binCounts = bins.reduce((acc, bin) => {
+      return [...acc, bin.length];
+    }, []);
 
-    // // Generate a histogram
-    // let histogram = d3.layout.histogram().bins(x.ticks(10))(toeflScores);
+    let binCountMin = d3.min(binCounts);
+    let binCountMax = d3.max(binCounts);
 
-    const count = toeflScores.reduce((acc, score) => ({
-      ...acc,
-      [score]: acc[score] ? acc[score] + 1 : 1,
-    }));
+    // Round min/max of binCount to nearest 5
+    binCountMin = Math.ceil(binCountMin / 5) * 5;
+    binCountMax = Math.ceil(binCountMax / 5) * 5;
 
-    const countMin = d3.min(Object.values(count));
-    const countMax = d3.max(Object.values(count));
+    console.log(binCountMax);
+    console.log(binCountMin);
 
-    const scoresMin = Math.min(...Object.keys(count));
-    const scoresMax = Math.max(...Object.keys(count));
+    return {
+      toeflMin: toeflMin,
+      toeflMax: toeflMax,
+      binCountMin: binCountMin,
+      binCountMax: binCountMax,
+    };
+  }
+
+  function findBinSizes(toeflScores) {
+    const toeflMax = d3.max(toeflScores);
+    const toeflMin = d3.min(toeflScores);
 
     let histGenerator = d3
       .histogram()
-      .domain([min, max])
+      .domain([toeflMin, toeflMax])
       .thresholds(9);
 
-    let bins = histGenerator(Object.keys(count));
-    console.log(bins);
+    let bins = histGenerator(toeflScores);
+    return bins;
   }
-
-  // // find min and max for toefl Scores and Chance of Admit
-  // function findMinMax(toeflScores) {
-  //   // get min/max toefl scores
-  //   let toeflMin = d3.min(toeflScores);
-  //   let toeflMax = d3.max(toeflScores);
-
-  //   // round x-axis limits
-  //   toeflMax = Math.round(toeflMax * 10) / 10;
-  //   toeflMin = Math.round(toeflMin * 10) / 10;
-
-  //   const { scoresMin, scoresMax } = findMinMaxYAxis(toeflScores);
-  //   // console.log(scoresMin);
-  //   // console.log(scoresMax);
-
-  //   // return formatted min/max data as an object
-  //   return {
-  //     toeflMin: toeflMin,
-  //     toeflMax: toeflMax,
-  //     scoresMin: scoresMin,
-  //     scoresMax: scoresMax,
-  //   };
-  // }
-
-  // function findMinMaxXAxis(toeflScores) {}
-
-  // function findMinMaxYAxis(toeflScores) {
-
-  //   const count = toeflScores.reduce((acc, score) => ({
-  //     ...acc,
-  //     [score]: acc[score] ? acc[score] + 1 : 1,
-  //   }));
-
-  //   const countMin = d3.min(Object.values(count));
-  //   const countMax = d3.max(Object.values(count));
-
-  //   const scoresMin = Math.min(...Object.keys(count));
-  //   const scoresMax = Math.max(...Object.keys(count));
-
-  //   let histGenerator = d3
-  //     .histogram()
-  //     .domain([countMin, countMax])
-  //     .thresholds(10);
-
-  //   let bins = histGenerator(toeflScores);
-  //   console.log(bins);
-
-  //   return {
-  //     scoresMin: Math.floor(scoresMin / 10) * 10,
-  //     scoresMax: Math.floor(scoresMax / 10) * 10 + 3,
-  //   };
-  // }
 })();
