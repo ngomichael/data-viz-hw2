@@ -27,51 +27,32 @@
 
     // group toefl scores into their bins
     bins = findBinSizes(toeflScores);
-    // console.log(bins);
 
+    // find min and max for x and y axis
     let axesLimits = findMinMax(toeflScores);
 
     // draw axes with ticks and return mapping and scaling functions
     let mapFunctions = drawTicks(axesLimits);
 
     // plot the data using the mapping and scaling functions
-    // plotData(mapFunctions);
+    plotData(mapFunctions);
   }
 
-  // plot all the data points on the SVG
+  // plot the historgram on the SVG
   function plotData(map) {
-    let xMap = map.x;
-    let yMap = map.y;
+    let xScale = map.xScale;
+    let yScale = map.yScale;
 
-    // append data to SVG and plot as points
-    // svgContainer
-    //   .selectAll('.dot')
-    //   .data(data)
-    //   .enter()
-    //   .append('circle')
-    //   .attr('cx', xMap)
-    //   .attr('cy', yMap)
-    //   .attr('r', 3)
-    //   .attr('fill', '#4286f4');
-
-    // Going to have to use bins as data
-    // svgContainer
-    //   .selectAll('.rec')
-    //   .data(bins)
-    //   .enter()
-    //   .append('rect')
-    //   .attr('x', dataPoint => xMap(dataPoint.x0) - 1)
-    //   .attr('y', yMap)
-    //   .attr('width', dataPoint => Math.max(0, x))
-    //   .attr('height', dataPoint => 450 - yMap(dataPoint))
-    //   .attr('fill', '#4286f4');
-
-    // svgContainer
-    //   .append('rect')
-    //   .attr('x', 10)
-    //   .attr('y', 10)
-    //   .attr('width', 50)
-    //   .attr('height', 100);
+    svgContainer
+      .selectAll('.rec')
+      .data(bins)
+      .enter()
+      .append('rect')
+      .attr('x', d => xScale(d.x0) + 1)
+      .attr('y', d => yScale(d.length))
+      .attr('width', d => Math.max(0, xScale(d.x1) - xScale(d.x0) - 1))
+      .attr('height', d => 450 - yScale(d.length))
+      .attr('fill', '#4286f4');
   }
 
   // draw the axes and ticks
@@ -99,7 +80,7 @@
       .attr('transform', 'translate(0, 450)')
       .call(xAxis);
 
-    // return TOEFL from a row of data
+    // return toefl from a row of data
     let yValue = function(d) {
       return +d['TOEFL Score'];
     };
@@ -131,9 +112,10 @@
     };
   }
 
+  // find min max for x and y axis
   function findMinMax(toeflScores) {
-    const toeflMax = d3.max(toeflScores);
     const toeflMin = d3.min(toeflScores);
+    const toeflMax = d3.max(toeflScores);
 
     const binCounts = bins.reduce((acc, bin) => {
       return [...acc, bin.length];
@@ -146,9 +128,6 @@
     binCountMin = Math.ceil(binCountMin / 5) * 5;
     binCountMax = Math.ceil(binCountMax / 5) * 5;
 
-    console.log(binCountMax);
-    console.log(binCountMin);
-
     return {
       toeflMin: toeflMin,
       toeflMax: toeflMax,
@@ -157,6 +136,7 @@
     };
   }
 
+  // use d3's histogram function to create bins
   function findBinSizes(toeflScores) {
     const toeflMax = d3.max(toeflScores);
     const toeflMin = d3.min(toeflScores);
@@ -166,7 +146,6 @@
       .domain([toeflMin, toeflMax])
       .thresholds(9);
 
-    let bins = histGenerator(toeflScores);
-    return bins;
+    return histGenerator(toeflScores);
   }
 })();
