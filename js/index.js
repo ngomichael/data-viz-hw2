@@ -3,15 +3,15 @@
 (function() {
   let data = []; // keep data in global scope
   let svgContainer = ''; // keep SVG reference in global scope
-  let bins = [];
+  let bins = []; // keep bin information in global scope
 
   // load data and make scatter plot after window loads
   window.onload = function() {
     svgContainer = d3
       .select('#histogram')
       .append('svg')
-      .attr('width', 500)
-      .attr('height', 500);
+      .attr('width', 650)
+      .attr('height', 650);
 
     d3.csv('../data/Admission_Predict.csv').then(csvData =>
       makeScatterPlot(csvData)
@@ -51,7 +51,7 @@
       .attr('x', d => xScale(d.x0) + 1)
       .attr('y', d => yScale(d.length))
       .attr('width', d => Math.max(0, xScale(d.x1) - xScale(d.x0) - 1))
-      .attr('height', d => 450 - yScale(d.length))
+      .attr('height', d => 600 - yScale(d.length))
       .attr('fill', '#4286f4');
   }
 
@@ -66,7 +66,7 @@
     let xScale = d3
       .scaleLinear()
       .domain([limits.toeflMin - 2, limits.toeflMax])
-      .range([50, 450]);
+      .range([50, 600]);
 
     // xMap returns a scaled x value from a row of data
     let xMap = function(d) {
@@ -77,7 +77,7 @@
     let xAxis = d3.axisBottom().scale(xScale);
     svgContainer
       .append('g')
-      .attr('transform', 'translate(0, 450)')
+      .attr('transform', 'translate(0, 600)')
       .call(xAxis);
 
     // return toefl from a row of data
@@ -89,7 +89,7 @@
     let yScale = d3
       .scaleLinear()
       .domain([limits.binCountMax, limits.binCountMin - 5])
-      .range([50, 450]);
+      .range([50, 600]);
 
     // yMap returns a scaled y value from a row of data
     let yMap = function(d) {
@@ -136,7 +136,7 @@
     };
   }
 
-  // use d3's histogram function to create bins
+  // use d3's histogram function to create bins for histogram
   function findBinSizes(toeflScores) {
     const toeflMax = d3.max(toeflScores);
     const toeflMin = d3.min(toeflScores);
