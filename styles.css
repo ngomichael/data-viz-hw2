@@ -30,6 +30,7 @@ body {
   font-size: 25px;
   font-weight: 100;
   color: hsl(228, 21%, 31%);
+  margin-right: 250px;
 }
 
 .axisLabel {
